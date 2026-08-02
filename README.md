@@ -1,104 +1,84 @@
-# Gmr (Onyx fork)
+# Gmr — Omarchy Theme Bundle
 
-Personal dark theme for [Omarchy](https://omarchy.org/) on this workstation —
-charcoal/translucent surfaces, pastel terminal palette, hard square corners,
-no blur, no shadows, no gaps, fully opaque windows.
+Personal dark theme for [Omarchy](https://omarchy.org/) — fork of
+[Onyx](https://github.com/luntta/omarchy-onyx-theme) (Raine Luntta, MIT)
+with a fully portable installer/rollback manager and non-theme overlays
+(Waybar, four terminals, Mako, SwayOSD, Walker, fontconfig, GTK 3.0, btop).
 
-> Forked from [Onyx](https://github.com/luntta/omarchy-onyx-theme) (Raine Luntta),
-> which itself descends from [Spectra](https://github.com/abhijeet-swami/omarchy-spectra-theme)
-> (Abhijeet Swami, MIT). The original Onyx → Gmr changes are documented under
-> `CHANGELOG.md`.
+## Why the repo name is `gmr-omarchy-bundle`
 
-![Gmr preview](preview.png)
+The repo name has **neither** the `omarchy-` prefix **nor** the
+`-theme` suffix, so Omarchy's `omarchy-theme-install` will not try to
+clone this repository as a theme into `~/.config/omarchy/themes/gmr/`
+(overwriting your real theme on every install).
 
-## Install
+Install paths documented below all bypass `omarchy-theme-install` and
+treat the bundle as a generic payload.
+
+## Files
+
+| File | Size | Purpose |
+| --- | ---: | --- |
+| `install-gmr-theme.sh` | 18 KB | Portable Bash installer |
+| `gmr-theme-1.0.0.tar.zst` | 12 MB | Theme bundle (zstd-compressed) |
+| `MANIFEST.toml` | 1.4 KB | Bundle metadata (version, expects, requires) |
+| `SHA256SUMS` | — | SHA256 of the two binary files |
+| `LICENSE` | 1.1 KB | MIT (with Unsplash credits in `theme/backgrounds/CREDITS.md`) |
+| `CHANGELOG.md` | — | Release notes |
+
+## Install (recommended)
 
 ```bash
-./install-gmr-theme.sh gmr-theme.tar.zst
+git clone https://github.com/GinesMr/gmr-omarchy-bundle
+cd gmr-omarchy-bundle
+./install-gmr-theme.sh gmr-theme-1.0.0.tar.zst
 ```
 
-The installer places the theme under `~/.config/omarchy/themes/gmr/` and then
-runs `omarchy-theme-set gmr` so all consumers (Hyprland, terminals, Waybar,
-Walker, Mako, SwayOSD, btop, Neovim, Gum, Chromium, Obsidian) pick it up.
+The installer places the theme under `~/.config/omarchy/themes/gmr/`,
+restores the Mako/btop/background symlinks, and then runs
+`omarchy-theme-set gmr` so every consumer (Hyprland, Waybar, terminals,
+Mako, SwayOSD, Walker, btop, Neovim, Gum, Chromium, Obsidian) picks it
+up.
 
-## Uninstall / rollback
+## Install (curl only — no git clone)
+
+```bash
+curl -L https://github.com/GinesMr/gmr-omarchy-bundle/releases/download/v1.0.0/install-gmr-theme.sh -o install-gmr-theme.sh
+curl -L https://github.com/GinesMr/gmr-omarchy-bundle/releases/download/v1.0.0/gmr-theme-1.0.0.tar.zst -o gmr-theme-1.0.0.tar.zst
+chmod +x install-gmr-theme.sh
+./install-gmr-theme.sh gmr-theme-1.0.0.tar.zst
+```
+
+## Install (Omarchy theme-set, manual)
+
+If you only want the theme files in `~/.config/omarchy/themes/gmr/`
+and are happy to wire the rest yourself:
+
+```bash
+git clone --depth 1 https://github.com/GinesMr/gmr-omarchy-bundle /tmp/gmr
+cp -a /tmp/gmr/gmr-theme-1.0.0.tar.zst /tmp/gmr-tmp.tar.zst
+tar -C /tmp -xf <(zstd -dc /tmp/gmr-tmp.tar.zst)
+cp -a /tmp/gmr-theme-1.0.0/theme ~/.config/omarchy/themes/gmr
+omarchy-theme-set gmr
+```
+
+## Rollback
 
 ```bash
 ./install-gmr-theme.sh --rollback
 ```
 
-## Architecture
+Backups live under `~/omarchy-ai-bootstrap/reports/theme-backups/<ts>/`.
+List them with `./install-gmr-theme.sh --list-backups`.
 
-This bundle packages two files:
+## What's portable vs. what isn't
 
-1. **`install-gmr-theme.sh`** — portable Bash installer with `--dry-run`,
-   `--validate-only`, `--rollback`, `--list-backups`, exit codes and a
-   pre-flight check.
-2. **`gmr-theme.tar.zst`** — a zstd-compressed tarball containing the theme
-   `~/.config/omarchy/themes/gmr/` plus reusable `dots/` overlays for the
-   non-theme configs (Waybar, terminals, Mako, SwayOSD, fontconfig, hyprlock
-   override, btop symlink).
-
-The installer:
-- Idempotent — re-running with the same version is a no-op.
-- Reversible — every install creates a backup under
-  `~/omarchy-ai-bootstrap/reports/theme-backups/<timestamp>/`.
-- Validated — runs `shellcheck`/`shfmt`-clean code, checksums the payload,
-  refuses to operate without `bash`, `tar`, `zstd`, `sha256sum`.
-- Non-destructive — never touches `~/.local/share/omarchy/`, never escalates
-  to root, never overwrites hardware-specific files (`monitors.conf`,
-  `input.conf`, `bindings.conf`, `autostart.conf`).
-
-## What's portable
-
-Included in the bundle (deploys on any machine that has the same packages):
-
-- The Omarchy theme itself (`gmr/`).
-- Waybar `style.css` + `config.jsonc` + `window.sh` helper.
-- Terminal configs (Alacritty, Ghostty, Kitty, Foot).
-- Mako, SwayOSD, Walker CSS.
-- Hyprlock override (centralized; doesn't duplicate the theme's input-field).
-- Fontconfig override (sans/serif/mono aliases).
-- GTK 3.0 settings.ini (forces Adwaita-dark + Yaru-sage + dark color-scheme).
-- btop symlink helper.
-
-## What's NOT portable (kept on the source machine)
-
-These are hardware- or workflow-specific and are never overwritten by the
-installer:
-
-- `~/.config/hypr/monitors.conf` — output names, sizes, refresh, scale.
-- `~/.config/hypr/input.conf` — keyboard layout, touchpad, repeat.
-- `~/.config/hypr/bindings.conf` — personal shortcuts, web apps, dictator-ptt.
-- `~/.config/hypr/autostart.conf` — personal autostart (e.g. dictator-ptt).
-- `~/.config/hypr/hypridle.conf`, `hyprsunset.conf` — personal timeouts.
-- `~/.config/waybar/window.sh` discord/vesktop hardcodes — generic helper is
-  provided instead.
-- `~/.config/nvim/` — Neovim (LazyVim) is a personal config; the theme still
-  ships `neovim.lua` for the Omarchy symlink.
-
-## What gets corrected (vs raw state)
-
-The pre-bundle audit found several inconsistencies in the source machine. The
-package ships the corrected versions:
-
-1. **Mako was disconnected** from the theme. The installer recreates the
-   `~/.config/mako/config` symlink so `gmr`'s palette is consumed.
-2. **Hyprlock had two input-fields** (one transparent). The theme's
-   `hyprlock.conf` is replaced with a single themeable widget; the user
-   `hyprlock.conf` keeps only the override-safe fields (background, blur,
-   font_family, animations, fingerprint).
-3. **Waybar used hardcoded VS Code colors** (`#569cd6`, `#9cdcfe`, `#2472c8`).
-   Now expressed as `@accent`, `@window_active`, `@text_window` from the
-   theme's `waybar.css`.
-4. **Walker CSS used `@selected-text`** without defining it. Fixed.
-5. **SwayOSD CSS used `@image`** without defining it. Fixed.
-6. **Waybar screenrecord on-click** pointed to `omarchy-cmd-screenrecord`
-   (no such command). Now points to `omarchy-capture-screenrecording`.
-7. **Background symlink target** is preserved; the payload keeps the eight
-   Unsplash wallpapers and `CREDITS.md`.
+See [`CHANGELOG.md`](./CHANGELOG.md) for the full architecture and
+the list of files the installer never touches
+(`monitors.conf`, `input.conf`, `bindings.conf`, `autostart.conf`,
+`nvim/**`, Plymouth, SDDM).
 
 ## License
 
-MIT — see `LICENSE`. Wallpapers under the Unsplash License — see
-`backgrounds/CREDITS.md`.
+MIT — see [`LICENSE`](./LICENSE). Wallpapers under the Unsplash
+License — see `theme/backgrounds/CREDITS.md` after install.
