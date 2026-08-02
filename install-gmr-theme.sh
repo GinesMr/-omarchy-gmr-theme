@@ -292,6 +292,36 @@ install_theme() {
   top_dir="$(find "$staging" -mindepth 1 -maxdepth 1 -type d | head -n1)"
   [[ -n "$top_dir" ]] || die "no top-level directory found in payload" 2
 
+  # Sanity: the theme/ subdir must exist before we move it
+  if [[ ! -d "$top_dir/theme" ]]; then
+    err "ERROR: theme/ subdirectory not found at $top_dir/theme"
+    err "staging contents:"
+    ls -la "$staging" >&2
+    err "top_dir contents:"
+    ls -la "$top_dir" >&2
+    rm -rf "$staging"
+    die "aborting: malformed payload" 2
+  fi
+
+  # Sanity: theme/ must contain colors.toml OR alacritty.toml (the Omarchy contract)
+  if [[ ! -f "$top_dir/theme/colors.toml" && ! -f "$top_dir/theme/alacritty.toml" ]]; then
+    err "ERROR: theme/ has neither colors.toml nor alacritty.toml"
+    err "this is not a valid Omarchy theme package"
+    rm -rf "$staging"
+    die "aborting: theme/ has no color source" 2
+  fi
+
+  # Sanity: theme/ must NOT contain stray bundle artefacts (e.g. the payload itself)
+  if [[ -f "$top_dir/theme/gmr-theme-1.0.0.tar.zst" \
+     || -f "$top_dir/theme/install-gmr-theme.sh" \
+     || -f "$top_dir/theme/MANIFEST.toml" \
+     || -f "$top_dir/theme/SHA256SUMS" ]]; then
+    err "ERROR: theme/ contains bundle artefacts — payload was probably extracted into the wrong place"
+    err "this usually means the caller invoked the installer with the wrong working directory"
+    rm -rf "$staging"
+    die "aborting: theme/ has bundle leaks" 2
+  fi
+
   # Move theme into target
   if [[ -d "$TARGET_DIR/$THEME_NAME" && $FORCE -ne 1 ]]; then
     err "theme '$THEME_NAME' already exists in $TARGET_DIR"
@@ -306,6 +336,19 @@ install_theme() {
   mkdir -p "$TARGET_DIR"
   vlog "mv $top_dir/theme -> $TARGET_DIR/$THEME_NAME"
   mv "$top_dir/theme" "$TARGET_DIR/$THEME_NAME"
+
+  # Post-move sanity: the moved theme must contain the Omarchy-required files
+  if [[ ! -f "$TARGET_DIR/$THEME_NAME/colors.toml" \
+     && ! -f "$TARGET_DIR/$THEME_NAME/alacritty.toml" ]]; then
+    err "ERROR: theme was moved but has no colors.toml or alacritty.toml"
+    err "aborting; current/theme will be restored by omarchy-theme-set on next run"
+    rm -rf "$staging"
+    die "aborting: theme install failed post-move" 5
+  fi
+  if [[ ! -f "$TARGET_DIR/$THEME_NAME/hyprland.conf" \
+     && ! -f "$TARGET_DIR/$THEME_NAME/alacritty.toml" ]]; then
+    err "WARNING: theme has no hyprland.conf — Hyprland may load without color/style"
+  fi
 
   # Install non-theme overlays
   if [[ -d "$top_dir/dots" ]]; then
