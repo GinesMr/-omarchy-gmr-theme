@@ -1,0 +1,70 @@
+schema_version = 1
+name = "gmr"
+version = "1.0.0"
+display_name = "Gmr (Onyx fork)"
+mode = "dark"
+category = "productivity"
+maintainer = "Gines Martinez"
+license = "MIT"
+omarchy_min_version = "3.8.0"
+omarchy_max_version = "4.0.0"
+wallpapers_count = 8
+description = "Charcoal/translucent dark theme, hard square corners, no blur, no shadows, no gaps, fully opaque windows."
+
+[requires]
+packages = [
+  "hyprland",
+  "waybar",
+  "swayosd",
+  "mako",
+  "walker",
+  "alacritty",
+  "kitty",
+  "ghostty",
+  "foot",
+  "btop",
+  "neovim",
+  "fontconfig",
+  "ttf-jetbrains-mono-nerd",
+  "ttf-liberation",
+  "ttf-noto-color-emoji",
+  "yaru-icon-theme",
+  "gnome-themes-extra",
+  "swaybg",
+  "chromium",
+]
+optional = ["hyprland-preview-share-picker", "asusctl", "qmk_hid"]
+
+[expects]
+files = [
+  "colors.toml",
+  "alacritty.toml",
+  "ghostty.conf",
+  "kitty.conf",
+  "foot.ini",
+  "hyprland.conf",
+  "hyprlock.conf",
+  "mako.ini",
+  "waybar.css",
+  "swayosd.css",
+  "walker.css",
+  "gtk.css",
+  "btop.theme",
+  "chromium.theme",
+  "keyboard.rgb",
+  "icons.theme",
+  "eza.yml",
+  "helix.toml",
+  "gum.env.conf",
+  "neovim.lua",
+  "obsidian.css",
+  "hyprland-preview-share-picker.css",
+  "LICENSE",
+  "README.md",
+  "CHANGELOG.md",
+  "preview.png",
+  "backgrounds/CREDITS.md",
+]
+
+[changelog]
+"1.0.0" = "Initial bundle. Fixes Mako, Hyprlock, Waybar/Walker/SwayOSD CSS issues; unifies colors; provides a portable installer with rollback."
