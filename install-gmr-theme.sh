@@ -374,7 +374,7 @@ install_theme() {
     log "  --no-apply: skipping omarchy-theme-set"
   elif command -v omarchy-theme-set >/dev/null 2>&1; then
     log "  applying: omarchy-theme-set $THEME_NAME"
-    if ! "${OMARCHY_THEME_SKIP_BACKGROUND:-}" || true; then
+    if [[ -z "${OMARCHY_THEME_SKIP_BACKGROUND:-}" ]]; then
       omarchy-theme-set "$THEME_NAME"
     else
       OMARCHY_THEME_SKIP_BACKGROUND=1 omarchy-theme-set "$THEME_NAME"
